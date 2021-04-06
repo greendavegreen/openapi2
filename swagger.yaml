@@ -1,0 +1,43 @@
+openapi: "3.0.1"
+info:
+  title: "default-api"
+  version: "v1.0"
+paths:
+  /:
+    get:
+      summary: List items
+      description: Returns list of tasks
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+        500:
+          description: "Internal Server Error"
+          content: {}
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunction.Arn}/invocations
+        credentials:
+          Fn::GetAtt: [MyHttpApiRole, Arn]
+        responses:
+          default:
+            statusCode: "500"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+
+components:
+  schemas:
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
